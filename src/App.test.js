@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import App from "./App";
 
 // test takes in two args. The descrip of the test is runs and an anonymous func
@@ -60,6 +61,18 @@ describe("App", () => {
     expect(screen.getByText(/Searches for JavaScript/)).toBeInTheDocument();
     screen.debug();
   });
+  test("react testing with userEvent", async () => {
+    render(<App />);
+
+    // wait for the user to resolve
+    await screen.findByText(/Signed in as/);
+
+    expect(screen.queryByText(/Searches for JavaScript/)).toBeNull();
+
+    await userEvent.type(screen.getByRole("textbox"), "JavaScript");
+
+    expect(screen.getByText(/Searches for JavaScript/)).toBeInTheDocument();
+  });
 });
 
 // What's the difference between getBy vs queryBy?
@@ -82,4 +95,5 @@ describe("App", () => {
 // userEvent API mimics the actual browser behavior more closely than the
 // fireEvent API. For example, a fireEvent.change() triggers only a change event
 // whereas userEvent.type triggers a change event, but also keyDown, keyPress,
-// and keyUp events.
+// and keyUp events.Whenever possible, use userEvent over fireEvent when using
+// React Testing Library.
