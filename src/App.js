@@ -1,5 +1,7 @@
 import React from "react";
-import "./App.css";
+import axios from "axios";
+
+const URL = "http://hn.algolia.com/api/v1/search";
 
 function getUser() {
   return Promise.resolve({ id: "1", name: "Robin" });
@@ -36,7 +38,7 @@ function App() {
   );
 }
 
-function Search({ value, onChange, children }) {
+export function Search({ value, onChange, children }) {
   return (
     <div>
       <label htmlFor="search">{children}</label>

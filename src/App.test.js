@@ -1,8 +1,9 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import App from "./App";
 
+import App from "./App";
+import { Search } from "./App";
 // test takes in two args. The descrip of the test is runs and an anonymous func
 describe("App", () => {
   test("renders testing first lesson", () => {
@@ -72,6 +73,39 @@ describe("App", () => {
     await userEvent.type(screen.getByRole("textbox"), "JavaScript");
 
     expect(screen.getByText(/Searches for JavaScript/)).toBeInTheDocument();
+  });
+});
+
+describe("Search", () => {
+  test("calls the onChange callback handler", () => {
+    const onChange = jest.fn();
+
+    render(
+      <Search value="" onChange={onChange}>
+        Search:
+      </Search>
+    );
+
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "JavaScript" },
+    });
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+  test("calls the onChange callback handler with userEvent", async () => {
+    const onChange = jest.fn();
+
+    render(
+      <Search value="" onChange={onChange}>
+        Search:
+      </Search>
+    );
+
+    await userEvent.type(screen.getByRole("textbox"), "JavaScript");
+
+    expect(onChange).toHaveBeenCalledTimes(10);
+    // While fireEvent executes the change event by only calling the callback
+    // function once, userEvent triggers it for every key stroke:
   });
 });
 
