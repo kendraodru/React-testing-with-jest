@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import App from "./App";
 
 // test takes in two args. The descrip of the test is runs and an anonymous func
@@ -45,15 +45,19 @@ describe("App", () => {
     expect(await screen.findByText(/Signed in as/)).toBeInTheDocument();
     // screen.debug();
   });
-  test("react testing interaction", () => {
+  test("react testing interaction", async () => {
     render(<App />);
 
+    // await screen.findByText(/Signed in as/); could do this instead of act
     screen.debug();
+    expect(screen.queryByText(/Searches for JavaScript/)).toBeNull();
 
-    fireEvent.change(screen.getByRole("textbox"), {
-      target: { value: "JavaScript" },
+    act(() => {
+      fireEvent.change(screen.getByRole("textbox"), {
+        target: { value: "JavaScript" },
+      });
     });
-
+    expect(screen.getByText(/Searches for JavaScript/)).toBeInTheDocument();
     screen.debug();
   });
 });
@@ -69,3 +73,13 @@ describe("App", () => {
 // FindBy:
 // The findBy search variant is used for asynchronous elements which will be
 // there eventually. For a suitable scenario
+
+// fireEvent:
+// The fireEvent function takes an element (here the input field by textbox role)
+// and an event (here an event which has the value "JavaScript")
+
+// userEvent:
+// userEvent API mimics the actual browser behavior more closely than the
+// fireEvent API. For example, a fireEvent.change() triggers only a change event
+// whereas userEvent.type triggers a change event, but also keyDown, keyPress,
+// and keyUp events.
