@@ -1,57 +1,17 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import axios from "axios";
 
 import App from "./App";
 import { Search } from "./App";
-// test takes in two args. The descrip of the test is runs and an anonymous func
+
+jest.mock("axios");
+
 describe("App", () => {
-  test("renders testing first lesson", () => {
-    render(<App />);
-
-    // screen.debug(); renders the html in our terminal
-
-    // a string argument is used for the exact match,
-    // a regular expression can be used for a partial match which
-    // is often more convenient:
-    // fails
-    // expect(screen.getByText("Search")).toBeInTheDocument();
-
-    // succeeds - looks for exact match
-    expect(screen.getByText("Search:")).toBeInTheDocument();
-
-    // succeeds -
-    expect(screen.getByText(/Search:/)).toBeInTheDocument();
-  });
-  test("react testing second lesson", () => {
-    render(<App />);
-
-    // screen.getByRole(""); react provides you avail roles, when there's no input
-
-    expect(screen.getByRole("textbox")).toBeInTheDocument();
-  });
-  test("react testing third lesson", () => {
-    render(<App />);
-    // screen.debug();
-
-    // fails
-    // expect(screen.getByText(/Searches for JavaScript/)).toBeNull();
-    expect(screen.queryByText(/Searches for JavaScript/)).toBeNull();
-  });
-  test("react testing fourth lesson, using findByText", async () => {
-    render(<App />);
-    // null at first render
-    // screen.debug();
-    expect(screen.queryByText(/Signed in as/)).toBeNull();
-    // Signed in as after fetching user
-    expect(await screen.findByText(/Signed in as/)).toBeInTheDocument();
-    // screen.debug();
-  });
   test("react testing interaction", async () => {
     render(<App />);
 
-    // await screen.findByText(/Signed in as/); could do this instead of act
-    screen.debug();
     expect(screen.queryByText(/Searches for JavaScript/)).toBeNull();
 
     act(() => {
@@ -59,19 +19,16 @@ describe("App", () => {
         target: { value: "JavaScript" },
       });
     });
+
     expect(screen.getByText(/Searches for JavaScript/)).toBeInTheDocument();
     screen.debug();
   });
   test("react testing with userEvent", async () => {
     render(<App />);
 
-    // wait for the user to resolve
     await screen.findByText(/Signed in as/);
-
     expect(screen.queryByText(/Searches for JavaScript/)).toBeNull();
-
     await userEvent.type(screen.getByRole("textbox"), "JavaScript");
-
     expect(screen.getByText(/Searches for JavaScript/)).toBeInTheDocument();
   });
 });
@@ -104,11 +61,38 @@ describe("Search", () => {
     await userEvent.type(screen.getByRole("textbox"), "JavaScript");
 
     expect(onChange).toHaveBeenCalledTimes(10);
-    // While fireEvent executes the change event by only calling the callback
-    // function once, userEvent triggers it for every key stroke:
   });
 });
 
+describe("App with Axios", () => {
+  test("fetches stories from an API and displays them", async () => {
+    const stories = [
+      { objectID: "1", title: "Hello" },
+      { objectID: "2", title: "React" },
+    ];
+
+    const promise = Promise.resolve({ data: { hits: stories } });
+
+    axios.get.mockImplementationOnce(() => promise);
+    render(<App />);
+
+    await userEvent.click(screen.getByRole("button"));
+    await act(() => promise);
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+  });
+
+  test("fetches stories from an API and fails", async () => {
+    axios.get.mockImplementationOnce(() => Promise.reject(new Error()));
+
+    render(<App />);
+
+    await userEvent.click(screen.getByRole("button"));
+    const message = await screen.findByText(/Something went wrong/);
+    expect(message).toBeInTheDocument();
+  });
+});
+
+// Notes:
 // What's the difference between getBy vs queryBy?
 // getBy returns an element or an error. It's a convenient side-effect of
 // getBy that it returns an error,

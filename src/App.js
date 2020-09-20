@@ -11,6 +11,8 @@ function App() {
   const title = "Learn React Testing";
   const [search, setSearch] = React.useState("");
   const [user, setUser] = React.useState(null);
+  const [stories, setStories] = React.useState([]);
+  const [error, setError] = React.useState(null);
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -20,6 +22,19 @@ function App() {
 
     loadUser();
   }, []);
+
+  async function handleFetch(event) {
+    let result;
+
+    try {
+      result = await axios.get(`${URL}?query=React`);
+
+      setStories(result.data.hits);
+    } catch (error) {
+      setError(error);
+    }
+  }
+
   function handleChange(event) {
     setSearch(event.target.value);
   }
@@ -33,7 +48,17 @@ function App() {
       </Search>
 
       <p>Searches for {search ? search : "..."}</p>
-      <button>Click Me</button>
+      <button type="button" onClick={handleFetch}>
+        Fetch Stories
+      </button>
+      {error && <span>Something went wrong ...</span>}
+      <ul>
+        {stories.map((story) => (
+          <li key={story.objectID}>
+            <a href={story.url}>{story.title}</a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
